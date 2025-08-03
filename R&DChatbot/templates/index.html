@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ollama Chatbot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+   #chat-container {
+  width: 360px;
+  height: 600px; /* Fixed height */
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+   #messages {
+  flex-grow: 1;
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+    .message {
+      margin: 10px 0;
+      max-width: 80%;
+      padding: 10px 14px;
+      border-radius: 20px;
+      display: inline-block;
+      clear: both;
+    }
+    .user {
+      background: #e67002;
+      color: white;
+      align-self: flex-end;
+      float: right;
+    }
+    .bot {
+      background: #e5e5ea;
+      color: black;
+      align-self: flex-start;
+      float: left;
+    }
+    #input-box {
+      display: flex;
+      border-top: 1px solid #ccc;
+    }
+    #user-input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      font-size: 16px;
+      border-radius: 0;
+    }
+    #send-button {
+      padding: 10px 15px;
+      background: #ff6600f0;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="chat-container">
+    <div id="messages"></div>
+    <div id="input-box">
+      <input type="text" id="user-input" placeholder="Type a message..." />
+      <button id="send-button">Send</button>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById('user-input');
+    const sendButton = document.getElementById('send-button');
+    const messagesDiv = document.getElementById('messages');
+
+    function appendMessage(text, sender) {
+      const msg = document.createElement('div');
+      msg.className = `message ${sender}`;
+      msg.textContent = text;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    sendButton.onclick = async () => {
+      const message = input.value.trim();
+      if (!message) return;
+
+      appendMessage(message, 'user');
+      input.value = '';
+      appendMessage("...", 'bot');  // temporary placeholder
+
+      const res = await fetch('/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      });
+      const data = await res.json();
+
+      // Replace the "..." placeholder
+      const allMessages = messagesDiv.querySelectorAll('.bot');
+      if (allMessages.length > 0) allMessages[allMessages.length - 1].textContent = data.response;
+    };
+
+    input.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') sendButton.click();
+    });
+  </script>
+</body>
+</html>
